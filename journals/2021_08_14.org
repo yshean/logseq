@@ -1,0 +1,94 @@
+* [[Using BLoC as your view model]] #flutter
+** One lesson that I learned by experience is don't jump to the next popular state management library just because you get tired of the current library
+** Reference to design pattern
+* #debug #flutter [[Tried to listen to an InheritedWidget in a life-cycle that will never be called again.]]
+** When using context.read or context.watch (or BlocBuilder/Consumer/Listener), make sure that the context contains the provider as parent. A common mistake is passing/using the wrong context (from above or outside the tree that contains provider). To fix this just update the context correctly or add the corresponding provider as parent to the widget you're accessing the value.
+* [[How it's made: I/O Photo Booth]] #flutter
+** Let's look at how the app is structured
+*** Group by feature [[Micro frontend]]
+**** app
+**** external_links
+**** footer
+**** l10n
+**** landing
+**** photobooth
+**** share
+**** stickers
+**** main.dart
+***** #tips Use `unawaited` to explicitly specify an unawaited Future
+***** Instantiate `BlocObserver`
+******
+```dart
+Bloc.observer = AppBlocObserver();
+```
+***** Place error handling
+******
+```dart
+FlutterError.onError = (details) {
+	print(details.exceptionAsString());
+	print(details.stack.toString());
+}
+
+runZonedGuarded(
+	() => runApp(App(
+		authenticationRepository: authenticationRepository,
+		photosRepository: photosRepository,
+	)),
+	(error, stackTrace) {
+		print(error.toString());
+		print(stackTrace.toString());
+	},
+);
+```
+***** Instantiate repositories
+****** Attach with `FirebaseAuth.instance` when you need, pass in as an argument to each repository
+***** Initialise Firebase
+******
+```dart
+unawaited(
+	Firebase.initializeApp().then(
+		(_) => authenticationRepository.signInAnonymously(),
+	),
+);
+```
+***** Asynchronous loading
+******
+```dart
+unawaited(
+	Future.wait([
+      Flame.images.load('android_spritesheet.png'),
+      Flame.images.load('dash_spritesheet.png'),
+    ]);
+);
+```
+***** Conditional loading / Instantiate splash screen / loading indicator
+******
+```dart
+import 'landing/loading_indicator_io.dart'
+	if (dart.library.html) 'landing/loading_indicator_web.dart';
+
+SchedulerBinding.instance!.addPostFrameCallback(
+	(_) => removeLoadingIndicator(),
+);
+```
+******
+**** assets.g.dart
+***** [[Don't type, generate assets]]
+***** In `pubspec.yaml`, in the `flutter:` section, put `generate: true`
+** [[Testing]]
+*** Shuffle the tests with `--test-randomize-ordering-seed random`
+*** Generate test coverage report with `--coverage`
+**** View coverage report with lcov
+*****
+```shell
+# Generate Coverage Report
+$ genhtml coverage/lcov.info -o coverage/
+# Open Coverage Report
+$ open coverage/index.html
+```
+** [[Translations]]
+*** flutter_localizations
+*** https://lokalise.com/blog/flutter-i18n/
+* [[Push notification in Flutter - Flutter 2.2 edition]] #flutter
+* [[Force update]] #flutter
+*

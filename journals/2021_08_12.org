@@ -1,0 +1,4 @@
+* [[Best practices]] #flutter
+** Don't extend widgets, compose - [[Favour composition over inheritance]]
+**
+*
